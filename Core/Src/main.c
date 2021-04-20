@@ -25,10 +25,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "fastTask.h"
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -71,6 +73,18 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for fastTask */
+osThreadId_t fastTaskHandle;
+uint32_t fastTaskBuffer[ 128 ];
+osStaticThreadDef_t fastTaskControlBlock;
+const osThreadAttr_t fastTask_attributes = {
+  .name = "fastTask",
+  .cb_mem = &fastTaskControlBlock,
+  .cb_size = sizeof(fastTaskControlBlock),
+  .stack_mem = &fastTaskBuffer[0],
+  .stack_size = sizeof(fastTaskBuffer),
+  .priority = (osPriority_t) osPriorityHigh,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -92,6 +106,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
 void StartDefaultTask(void *argument);
+extern void StartFastTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -170,6 +185,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of fastTask */
+  fastTaskHandle = osThreadNew(StartFastTask, NULL, &fastTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -975,9 +993,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
-	HAL_GPIO_TogglePin(USER_LED_GPIO_Port,USER_LED_Pin);
-
+    osDelay(1);
   }
   /* USER CODE END 5 */
 }
