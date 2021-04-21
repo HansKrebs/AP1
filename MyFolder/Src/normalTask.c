@@ -1,26 +1,23 @@
 /*
- * fastTask.c
+ * normalTask.c
  *
- *  Created on: 20.04.2021
+ *  Created on: 21.04.2021
  *      Author: Hans
  */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "fastTask.h"
+#include "slowTask.h"
 #include "normalTask.h"
-//extern osEventFlagsId_t fastTaskEventHandle;
 
 static osEventFlagsId_t *myEvHdl = NULL;
 
-void InitFastTask(osEventFlagsId_t *fTEvHnd)
+void InitNormalTask(osEventFlagsId_t *fTEvHnd)
 {
 	myEvHdl = fTEvHnd;
-
 }
 
-void StartFastTask(void *argument)
+void StartNormalTask(void *argument)
 {
 	uint32_t tim=0;
 	while(!myEvHdl)
@@ -28,12 +25,12 @@ void StartFastTask(void *argument)
 	/* Infinite loop */
 	for(;;)
 	{
-		osEventFlagsWait (*myEvHdl , FAST_TASK_EVENT, 0, 15);
-	    osEventFlagsClear (*myEvHdl , FAST_TASK_EVENT);
+	    osEventFlagsWait (*myEvHdl , NORMAL_TASK_EVENT, 0, 150);
+	    osEventFlagsClear (*myEvHdl , NORMAL_TASK_EVENT);
 		tim++;
 		if(tim >= 10){
 			tim= 0;
-			osEventFlagsSet(*myEvHdl, NORMAL_TASK_EVENT);
+			osEventFlagsSet(*myEvHdl, SLOW_TASK_EVENT);
 		}
 	}
 }

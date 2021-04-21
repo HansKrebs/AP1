@@ -31,6 +31,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -63,6 +64,7 @@ SPI_HandleTypeDef hspi2;
 SPI_HandleTypeDef hspi3;
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 
@@ -85,6 +87,38 @@ const osThreadAttr_t fastTask_attributes = {
   .stack_size = sizeof(fastTaskBuffer),
   .priority = (osPriority_t) osPriorityHigh,
 };
+/* Definitions for normalTask */
+osThreadId_t normalTaskHandle;
+uint32_t normalTaskBuffer[ 128 ];
+osStaticThreadDef_t normalTaskControlBlock;
+const osThreadAttr_t normalTask_attributes = {
+  .name = "normalTask",
+  .cb_mem = &normalTaskControlBlock,
+  .cb_size = sizeof(normalTaskControlBlock),
+  .stack_mem = &normalTaskBuffer[0],
+  .stack_size = sizeof(normalTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for slowTask */
+osThreadId_t slowTaskHandle;
+uint32_t slowTaskBuffer[ 128 ];
+osStaticThreadDef_t slowTaskControlBlock;
+const osThreadAttr_t slowTask_attributes = {
+  .name = "slowTask",
+  .cb_mem = &slowTaskControlBlock,
+  .cb_size = sizeof(slowTaskControlBlock),
+  .stack_mem = &slowTaskBuffer[0],
+  .stack_size = sizeof(slowTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for taskEvent */
+osEventFlagsId_t taskEventHandle;
+osStaticEventGroupDef_t taskEventControlBlock;
+const osEventFlagsAttr_t taskEvent_attributes = {
+  .name = "taskEvent",
+  .cb_mem = &taskEventControlBlock,
+  .cb_size = sizeof(taskEventControlBlock),
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -105,8 +139,11 @@ static void MX_SPI3_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
+static void MX_TIM5_Init(void);
 void StartDefaultTask(void *argument);
 extern void StartFastTask(void *argument);
+extern void StartNormalTask(void *argument);
+extern void StartSlowTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -159,6 +196,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_FATFS_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -189,12 +227,27 @@ int main(void)
   /* creation of fastTask */
   fastTaskHandle = osThreadNew(StartFastTask, NULL, &fastTask_attributes);
 
+  /* creation of normalTask */
+  normalTaskHandle = osThreadNew(StartNormalTask, NULL, &normalTask_attributes);
+
+  /* creation of slowTask */
+  slowTaskHandle = osThreadNew(StartSlowTask, NULL, &slowTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
+  HAL_TIM_Base_Start_IT(&htim5);
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
+  /* Create the event(s) */
+  /* creation of taskEvent */
+  taskEventHandle = osEventFlagsNew(&taskEvent_attributes);
+
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
+  InitFastTask(&taskEventHandle);
+  InitNormalTask(&taskEventHandle);
+  InitSlowTask(&taskEventHandle);
+
   /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
@@ -746,6 +799,51 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 120;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 10000;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+
+}
+
+/**
   * @brief TIM6 Initialization Function
   * @param None
   * @retval None
@@ -1009,12 +1107,14 @@ void StartDefaultTask(void *argument)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM3) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+  else {
+	  osEventFlagsSet(taskEventHandle, FAST_TASK_EVENT);
+  }
 
   /* USER CODE END Callback 1 */
 }
