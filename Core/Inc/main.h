@@ -30,6 +30,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32l4xx_hal.h"
 
+#include "hci_tl_interface.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -88,6 +89,10 @@ void Error_Handler(void);
 #define SD_SEL_GPIO_Port GPIOE
 #define I2C1_SDA_Pin GPIO_PIN_7
 #define I2C1_SDA_GPIO_Port GPIOB
+#define BLE_INT_Pin GPIO_PIN_4
+#define BLE_INT_GPIO_Port GPIOD
+#define SPI2_CS_Pin GPIO_PIN_0
+#define SPI2_CS_GPIO_Port GPIOD
 #define SDMMC1_D2_Pin GPIO_PIN_10
 #define SDMMC1_D2_GPIO_Port GPIOC
 #define SDMMC1_D1_Pin GPIO_PIN_9
@@ -108,6 +113,8 @@ void Error_Handler(void);
 #define SDMMC1_CMD_GPIO_Port GPIOD
 #define SDMMC1_CK_Pin GPIO_PIN_12
 #define SDMMC1_CK_GPIO_Port GPIOC
+#define NRST_BLE_Pin GPIO_PIN_8
+#define NRST_BLE_GPIO_Port GPIOA
 #define SDMMC1_D0DIR_Pin GPIO_PIN_6
 #define SDMMC1_D0DIR_GPIO_Port GPIOC
 #define USER_LED_Pin GPIO_PIN_2
