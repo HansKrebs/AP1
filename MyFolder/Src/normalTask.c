@@ -28,7 +28,7 @@ void StartNormalTask(void *argument)
 	    osEventFlagsWait (*myEvHdl , NORMAL_TASK_EVENT, 0, 150);
 	    osEventFlagsClear (*myEvHdl , NORMAL_TASK_EVENT);
 		tim++;
-		if(tim >= 10){
+		if(tim >= NORMAL_TO_SLOW_TASK){
 			tim= 0;
 			osEventFlagsSet(*myEvHdl, SLOW_TASK_EVENT);
 		}

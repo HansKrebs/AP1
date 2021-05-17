@@ -26,6 +26,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "fastTask.h"
+#include "normalTask.h"
+#include "slowTask.h"
 
 /* USER CODE END Includes */
 
@@ -1134,8 +1136,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  else {
+  else if (htim->Instance == TIM1) {
+	  ;
+  }
+  else if (htim->Instance == TIM2) {
+	 ;
+  }
+  else if (htim->Instance == TIM4) {
+	  ;
+  }
+  else if (htim->Instance == TIM5) {
 	  osEventFlagsSet(taskEventHandle, FAST_TASK_EVENT);
+  }
+  else if (htim->Instance == TIM6) {
+	  ;
+  }
+  else if (htim->Instance == TIM7) {
+	  ;
   }
 
   /* USER CODE END Callback 1 */

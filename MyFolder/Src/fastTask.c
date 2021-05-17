@@ -31,7 +31,7 @@ void StartFastTask(void *argument)
 		osEventFlagsWait (*myEvHdl , FAST_TASK_EVENT, 0, 15);
 	    osEventFlagsClear (*myEvHdl , FAST_TASK_EVENT);
 		tim++;
-		if(tim >= 10){
+		if(tim >= FAST_TO_NORMAL_TASK){
 			tim= 0;
 			osEventFlagsSet(*myEvHdl, NORMAL_TASK_EVENT);
 		}
